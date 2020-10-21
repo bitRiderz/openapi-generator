@@ -90,7 +90,7 @@ public class ExampleGeneratorTest {
 
         assertEquals(1, examples.size());
         assertEquals("application/json", examples.get(0).get("contentType"));
-        assertEquals("\"string schema example value\"", examples.get(0).get("example"));
+        assertEquals("[ \"string schema example value\" ]", examples.get(0).get("example"));
         assertEquals("200", examples.get(0).get("statusCode"));
     }
 
