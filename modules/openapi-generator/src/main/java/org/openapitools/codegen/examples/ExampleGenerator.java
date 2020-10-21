@@ -84,7 +84,7 @@ public class ExampleGenerator {
                 return generate((Map<String, Object>) responseSchema.getExample(),
                         new ArrayList<String>(producesInfo), as.getItems());
             } else if (as.getItems() != null && !StringUtils.isEmpty(as.getItems().get$ref())) { // array of model
-                return generate((Map<String, Object>) responseSchema.getExample(),
+                return generateArrayOfModel((Map<String, Object>) responseSchema.getExample(),
                         new ArrayList<String>(producesInfo), ModelUtils.getSimpleRef(as.getItems().get$ref()));
             } else {
                 // TODO log warning message as such case is not handled at the moment
