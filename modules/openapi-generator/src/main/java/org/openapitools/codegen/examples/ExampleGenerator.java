@@ -142,7 +142,12 @@ public class ExampleGenerator {
         return output;
     }
 
-    public List<Map<String, String>> generate(Map<String, Object> examples, List<String> mediaTypes, String modelName) {
+    public List<Map<String,String>> generateArrayOfModel(Map<String, Object> examples, List<String> mediaTypes, String modelName)
+    {
+      return generate(examples, mediaTypes, modelName, List.class);
+    }
+
+    public List<Map<String, String>> generate(Map<String, Object> examples, List<String> mediaTypes, String modelName, Class ...WrapperType) {
         List<Map<String, String>> output = new ArrayList<>();
         Set<String> processedModels = new HashSet<>();
         if (examples == null) {
@@ -156,7 +161,8 @@ public class ExampleGenerator {
                 if (modelName != null && (mediaType.startsWith(MIME_TYPE_JSON) || mediaType.contains("*/*"))) {
                     final Schema schema = this.examples.get(modelName);
                     if (schema != null) {
-                        String example = Json.pretty(resolveModelToExample(modelName, mediaType, schema, processedModels));
+                        Object resolveModelToExample = resolveModelToExample(modelName, mediaType, schema, processedModels);
+                        String example = getJsonExample(resolveModelToExample, WrapperType);
 
                         if (example != null) {
                             kv.put(EXAMPLE, example);
@@ -189,7 +195,16 @@ public class ExampleGenerator {
         return output;
     }
 
-    private List<Map<String, String>> generate(Object example, List<String> mediaTypes) {
+  private String getJsonExample(Object resolveModelToExample, Class[] wrapperType) {
+    if (wrapperType.length > 0 && List.class == wrapperType[0]) {
+      return Json.pretty(List.of(resolveModelToExample));
+    }
+    else {
+      return Json.pretty(resolveModelToExample);
+    }
+  }
+
+  private List<Map<String, String>> generate(Object example, List<String> mediaTypes) {
         List<Map<String, String>> output = new ArrayList<>();
         if (examples != null) {
             if (mediaTypes == null) {
