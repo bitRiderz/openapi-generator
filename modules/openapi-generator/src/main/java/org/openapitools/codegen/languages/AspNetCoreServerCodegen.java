@@ -59,6 +59,11 @@ public class AspNetCoreServerCodegen extends AbstractCSharpCodegen {
     public static final String USE_DEFAULT_ROUTING = "useDefaultRouting";
     public static final String NEWTONSOFT_VERSION = "newtonsoftVersion";
 
+    public static final String USE_ENTITYFRAMEWORK = "useEntityFramework";
+    public static final String EF_CORE_VERSION = "efCoreVersion";
+    public static final String EF_CORE_DESIGN_VERSION = "efCoreDesignVersion";
+    public static final String POMELO_MYSQL_VERSION = "pomeloMysqlVersion";
+
     private String packageGuid = "{" + randomUUID().toString().toUpperCase(Locale.ROOT) + "}";
     private String userSecretsGuid = randomUUID().toString();
 
@@ -83,6 +88,11 @@ public class AspNetCoreServerCodegen extends AbstractCSharpCodegen {
     private boolean useNewtonsoft = true;
     private boolean useDefaultRouting = true;
     private String newtonsoftVersion = "3.0.0";
+
+    private boolean useEntityFramework = false;
+    private String efCoreVersion = "3.1.9";
+    private String efCoreDesignVersion = "3.1.9";
+    private String pomeloMysqlVersion = "3.2.3";
 
     public AspNetCoreServerCodegen() {
         super();
@@ -238,6 +248,15 @@ public class AspNetCoreServerCodegen extends AbstractCSharpCodegen {
                 "Version for Microsoft.AspNetCore.Mvc.NewtonsoftJson for ASP.NET Core 3.0+",
                 newtonsoftVersion);
 
+        addSwitch(USE_ENTITYFRAMEWORK, "Use Entity Framework for ASP.NET Core 3.0+",
+          useEntityFramework);
+        addOption(EF_CORE_VERSION, "Version for Microsoft.EntityFrameworkCore for ASP.NET Core 3.0+",
+          efCoreVersion);
+        addOption(EF_CORE_DESIGN_VERSION, "Version for Microsoft.EntityFrameworkCore.Design for ASP.NET Core 3.0+",
+          efCoreDesignVersion);
+        addOption(POMELO_MYSQL_VERSION, "Version for Pomelo.EntityFrameworkCore.MySql for ASP.NET Core 3.0+",
+          pomeloMysqlVersion);
+
         addSwitch(USE_DEFAULT_ROUTING,
                 "Use default routing for the ASP.NET Core version.",
                 useDefaultRouting);
@@ -327,6 +346,24 @@ public class AspNetCoreServerCodegen extends AbstractCSharpCodegen {
             newtonsoftVersion = (String) additionalProperties.get(NEWTONSOFT_VERSION);
         }
 
+        if (!additionalProperties.containsKey(EF_CORE_VERSION)) {
+          additionalProperties.put(EF_CORE_VERSION, efCoreVersion);
+        } else {
+          efCoreVersion = (String) additionalProperties.get(EF_CORE_VERSION);
+        }
+
+        if (!additionalProperties.containsKey(EF_CORE_DESIGN_VERSION)) {
+          additionalProperties.put(EF_CORE_DESIGN_VERSION, efCoreDesignVersion);
+        } else {
+          efCoreDesignVersion = (String) additionalProperties.get(EF_CORE_DESIGN_VERSION);
+        }
+
+        if (!additionalProperties.containsKey(POMELO_MYSQL_VERSION)) {
+          additionalProperties.put(POMELO_MYSQL_VERSION, pomeloMysqlVersion);
+        } else {
+          pomeloMysqlVersion = (String) additionalProperties.get(POMELO_MYSQL_VERSION);
+        }
+
         // Check for the modifiers etc.
         // The order of the checks is important.
         setBuildTarget();
@@ -359,6 +396,7 @@ public class AspNetCoreServerCodegen extends AbstractCSharpCodegen {
         setIsFramework();
         setUseNewtonsoft();
         setUseEndpointRouting();
+        setIsEntityFramework();
 
         supportingFiles.add(new SupportingFile("build.sh.mustache", "", "build.sh"));
         supportingFiles.add(new SupportingFile("build.bat.mustache", "", "build.bat"));
@@ -375,6 +413,10 @@ public class AspNetCoreServerCodegen extends AbstractCSharpCodegen {
             supportingFiles.add(new SupportingFile("Dockerfile.mustache", packageFolder, "Dockerfile"));
             supportingFiles.add(new SupportingFile("appsettings.json", packageFolder, "appsettings.json"));
 
+            if(useEntityFramework) {
+              supportingFiles.add(new SupportingFile("AppConfig.mustache", packageFolder, "AppConfig.cs"));
+              supportingFiles.add(new SupportingFile("AppDb.mustache", packageFolder, "AppDb.cs"));
+            }
             supportingFiles.add(new SupportingFile("Startup.mustache", packageFolder, "Startup.cs"));
             supportingFiles.add(new SupportingFile("Program.mustache", packageFolder, "Program.cs"));
             supportingFiles.add(new SupportingFile("Properties" + File.separator + "launchSettings.json",
@@ -601,6 +643,14 @@ public class AspNetCoreServerCodegen extends AbstractCSharpCodegen {
             }
         }
     }
+
+  private void setIsEntityFramework() {
+    if (additionalProperties.containsKey(USE_ENTITYFRAMEWORK)) {
+      useEntityFramework = convertPropertyToBooleanAndWriteBack(USE_ENTITYFRAMEWORK);
+    } else {
+      additionalProperties.put(USE_ENTITYFRAMEWORK, useEntityFramework);
+    }
+  }
 
     private void setUseNewtonsoft() {
         if (aspnetCoreVersion.getOptValue().startsWith("2.")) {

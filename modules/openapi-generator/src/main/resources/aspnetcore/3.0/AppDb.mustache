@@ -1,0 +1,20 @@
+using Microsoft.EntityFrameworkCore;
+using {{packageName}}.Models;
+
+namespace {{packageName}}
+{
+    public class AppDb : DbContext
+    {
+
+{{#models}}
+{{#model}}
+        public DbSet<{{classname}}> {{classname}}s { get; set; }
+{{/model}}
+{{/models}}
+
+        public AppDb(DbContextOptions<AppDb> options) : base(options)
+        {
+
+        }
+    }
+}

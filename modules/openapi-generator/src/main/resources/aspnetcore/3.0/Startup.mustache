@@ -20,6 +20,10 @@ using {{packageName}}.Authentication;
 using {{packageName}}.Filters;
 {{/useSwashbuckle}}
 using {{packageName}}.OpenApi;
+{{#useEntityFramework}}
+using Microsoft.EntityFrameworkCore;
+using MySql.Data.MySqlClient;
+{{/useEntityFramework}}
 
 namespace {{packageName}}
 {
@@ -48,6 +52,9 @@ namespace {{packageName}}
         /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
+{{#useEntityFramework}}
+            ConfigureEntityFramework(services);
+{{/useEntityFramework}}
 {{#authMethods}}
 {{#isApiKey}}
             services.AddTransient<IAuthorizationHandler, ApiKeyRequirementHandler>();
@@ -118,6 +125,36 @@ namespace {{packageName}}
 {{/useNewtonsoft}}
 {{/useSwashbuckle}}
         }
+
+{{#useEntityFramework}}
+        public static void ConfigureEntityFramework(IServiceCollection services)
+        {
+            services.AddDbContextPool<AppDb>(
+                options => options.UseMySql(GetConnectionString(),
+                    mysqlOptions =>
+                    {
+                        mysqlOptions.MaxBatchSize(AppConfig.EfBatchSize);
+                        mysqlOptions.ServerVersion(AppConfig.Config["Data:ServerVersion"]);
+                        if (AppConfig.EfRetryOnFailure > 0)
+                        {
+                            mysqlOptions.EnableRetryOnFailure(AppConfig.EfRetryOnFailure, TimeSpan.FromSeconds(5), null);
+                        }
+                    }
+                ));
+        }
+
+        private static string GetConnectionString()
+        {
+            var csb = new MySqlConnectionStringBuilder(AppConfig.ConnectionString);
+
+            if (AppConfig.EfDatabase != null)
+            {
+                csb.Database = AppConfig.EfDatabase;
+            }
+
+            return csb.ConnectionString;
+        }
+{{/useEntityFramework}}
 
         /// <summary>
         /// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
