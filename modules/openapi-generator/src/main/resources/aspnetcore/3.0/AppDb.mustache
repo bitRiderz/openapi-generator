@@ -8,7 +8,9 @@ namespace {{packageName}}
 
 {{#models}}
 {{#model}}
+        {{#vendorExtensions.x-persistence-entity}}
         public DbSet<{{classname}}> {{classname}}s { get; set; }
+        {{/vendorExtensions.x-persistence-entity}}
 {{/model}}
 {{/models}}
 
